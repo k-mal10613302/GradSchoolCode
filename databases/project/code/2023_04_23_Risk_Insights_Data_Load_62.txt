@@ -1,0 +1,204 @@
+-- Module 5.2 Data Manipulation and Transaction Control, Restricting Rows and 
+-- Sorting Data
+-- AIT-524, DL1 
+-- Spring Semester 2023
+-- Student: Keith Maly
+
+/* Assignment: Building on the tables and constraints developed in Module 5.1, 
+and using the updated EERD provided developed, insert 2-3 records into each
+table using the INSERT command. For each created table, display 
+its structure and the content.*/
+
+select sysdate, 'kmaly2' from dual;
+
+-- 1. Populate the Customer Table
+    -- Describe the table
+DESC customer;
+
+    -- insert values. need nine customers customers so that each subtype will 
+    -- have at least two entries
+INSERT INTO customer
+    VALUES (1, '01-APR-2023','Bedrock Quarrel and Gravel', 'George Slate', 
+    'george.slate@brqg.com','9705551212', 1);
+INSERT INTO customer
+    VALUES (2, '01-APR-2023', 'Rockland Club', 'Hot Lips Hannigan',
+    'hlh@rockland.com', '9705551234', 2);
+INSERT INTO customer
+    VALUES (3, '01-APR-2023', 'Bedrock Newspaper', 'Arnold',
+    'inyourfacef@brnews.com', '9705550123', 3);
+INSERT INTO customer
+    VALUES (4, '01-APR-2023', 'Hollyrock Film Studios', 'Rock Quarry',
+    'chicksdigme@hollyrock.com', '9705559876', 4);
+INSERT INTO customer
+    VALUES (5, '01-APR-2023', 'Alien Enterprises', 'Great Gazoo',
+    'thegreatgazoo@gmail.com', NULL, 3);
+INSERT INTO customer
+    VALUES (6, '01-APR-2023', 'Loyal Order of Water Buffalos', 'Sam Slagheap',
+    'grandpoobah@loowb.org', '9705552222', 3);
+INSERT INTO customer
+    VALUES (7, '01-APR-2023', 'mother-in-laws, inc', 'Pearl Slaghoople',
+    'ihateff@hotmail.com', NULL, 4);
+INSERT INTO customer
+    VALUES (8, '01-APR-2023', 'bedrock volunteer firefighters', 'Joe Rockhead',
+    NULL, '9705556969', 1);
+INSERT INTO customer
+    VALUES (9, '01-APR-2023', 'bedrock babysitters', 'Hoppy', 
+    NULL, NULL, 2);
+INSERT INTO customer
+    VALUES (10, '02-APR-2023', 'PG investigators', 'Brigette', 
+    'brigette@pgi.com', '9705554635', 2);
+INSERT INTO customer
+    VALUES (11, '02-APR-2023', 'Gravel Hotel', 'Gus Gravel', 
+    'gg@pghotel.com', '9705559786', 3);
+    
+    -- show content
+SELECT * FROM customer;
+
+-- 2. Populate the Employee Table
+    -- Describe the table
+DESC employee;
+
+    -- insert values
+INSERT INTO employee
+    VALUES ('FRED', 'Fred Flinstone', 'fflinstone@riskinsights.biz', 1, 
+        'Owns Risk Insights');
+INSERT INTO employee 
+    VALUES ('BARN', 'Barney Rubble', 'brubble@risk-insights.biz', 1, 
+        'Bowler');
+INSERT INTO employee 
+    VALUES ('WILM', 'Wilma Flintstone', 'wflintstone@risk-insights.biz', 1, 
+        'Pie Baker');
+INSERT INTO employee 
+    VALUES ('BETT', 'Betty Rubble', 'erubble@risk-insights.biz', 1, 
+        'Volunteerism');
+
+    -- show content
+SELECT * FROM employee;
+
+-- 3. Populate the Plan Table
+    -- Describe the table
+DESC riplan;
+
+    -- insert values
+INSERT INTO riplan 
+    VALUES (1, 3, 'FRED', '02-APR-2023', NULL, 'ACT', 
+        'Plan for Bedrock Newspaper opened April 2, 2023.');
+INSERT INTO riplan 
+    VALUES (2, 5, 'BARN', '02-APR-2023', NULL, 'ACT', 
+        'Plan for Alien Enterprises opened April 2, 2023.');
+INSERT INTO riplan 
+    VALUES (3, 6, 'WILM', '02-APR-2023', NULL, 'ACT', 
+        'Plan for Water Buffalos opened April 2, 2023.');
+INSERT INTO riplan
+    VALUES (4, 11,'FRED', '03-APR-2023', NULL, 'ACT',
+        'Plan for Gravel Hotel Opened April 3, 2023.');
+
+    -- show content
+SELECT * FROM riplan;
+
+-- 4. Populate the Task Table
+    -- Describe the table
+DESC task;
+
+    -- insert values
+INSERT INTO task
+    VALUES ('1', 1, 'RQMT','03-APR-2023', '17-APR-2023', NULL, 'NST', 
+        'Task is to figure out how to not hit Fred in the face with a paper', NULL);
+INSERT INTO task
+    VALUES ('2', 2, 'ENG', '03-APR-2023', '20-APR-2023', NULL, 'INP', 
+        'Task is to engineer a solution so that other citizens in bedrock can see Gazoo', NULL);
+INSERT INTO task
+    VALUES ('3', 3, 'AnP', '03-APR-2023', '10-APR-2023', NULL, 'INP',
+        'Water Buffalos want a special pie recipe', NULL);
+INSERT INTO task
+    VALUES ('4', 4, 'RnD', '04-APR-2023', '04-MAY-2023', NULL, 'NST',
+        'Task is to redesign the Gravel Hotel Elevator', NULL);
+
+    -- show content
+SELECT * FROM task;
+
+-- 5. Populate the Document Table
+    -- Describe the table
+DESC cli_doc;
+
+    -- insert values
+INSERT INTO cli_doc
+    VALUES ('1', '2', '04-APR-2023', NULL, 'Gazoo Visibility Solution v0.1',
+       'DOC', 'INP', 'Draft engineering requirement for visibility solution.',
+       'https://www.risk-insights.biz/docs/001.doc');
+INSERT INTO cli_doc
+    VALUES ('2', '3', '04-APR-2023', '06-APR-2023', 'Water Buffalo Pie Recipe (FINAL)',
+        'DOC', 'CMP', 'Document provides special pie recipe for the Loyal Order of the Water Buffalo',
+        'https://www.risk-insights.biz/docs/002.doc');
+    
+    -- show content
+SELECT * FROM cli_doc;
+
+-- 6. Populate the Work Log Table
+    -- Describe the table
+DESC work_log;
+
+    -- insert values
+INSERT INTO work_log
+    VALUES (1, 'BARN', '2', '05-APR-2023', 1.0, 'Started the draft on Gazoo''s Visibility Design Requirement');
+INSERT INTO work_log
+    VALUES (2, 'WILM', '3', '06-APR-2023', 2.0, 'Developed special pie recipe and wrote it down. Fred Approved');
+    -- show content
+
+SELECT * FROM work_log;
+
+-- 7. Populate the Contact (customer sub-type) Table
+    -- Describe the table
+DESC contact;
+
+    -- insert values
+INSERT INTO contact
+    VALUES (1, 1);
+INSERT INTO contact
+    VALUES (8, 1);
+
+    -- show content
+SELECT * FROM contact;
+
+-- 8. Populate the Lead Table (customer sub-type)
+    -- Describe the table
+DESC ri_lead;
+
+    -- insert values
+INSERT INTO ri_lead
+    VALUES(2, 2, 'Rockland club wants to talk business');
+INSERT INTO ri_lead
+    VALUES(9, 2, 'Hoppy can''t talk, but we know he wants to do business.');
+INSERT INTO ri_lead
+    VALUES(10, 2, 'The investigation firm could be a good revenue source.');
+
+    -- show content
+SELECT * FROM ri_lead;
+
+-- 9. Populate the Client Table (customer sub-type)
+    -- Describe the table
+DESC ri_client;
+
+    -- insert values
+INSERT INTO ri_client
+    VALUES (3, 3, '02-APR-2023', '02-OCT-2023', 'TBD', '1234567890');
+INSERT INTO ri_client
+    VALUES (5, 3, '02-APR-2023', '02-APR-2024', 'TBD', '0123456789');
+INSERT INTO ri_client
+    VALUES (6, 3, '02-APR-2023', '02-JUL-2023', 'TBD', '9012345678');
+INSERT INTO ri_client
+    VALUES (11, 3, '03-APR-2023', '03-OCT-2023', 'TBD', '9012345678');    
+    -- show content
+SELECT * FROM ri_client;
+
+-- 10. Populate the Closed Table (customer sub-type)
+    -- Describe the table
+DESC closed;
+
+    -- insert values
+INSERT INTO closed 
+    VALUES (4, 4, '03-APR-2023');
+INSERT INTO closed 
+    VALUES (7, 4, '04-APR-2023');
+    -- show content
+SELECT * FROM closed;

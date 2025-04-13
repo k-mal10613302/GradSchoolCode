@@ -1,0 +1,172 @@
+-- Module 6.2 Single-Row and Group Functions
+-- AIT-524, DL1 
+-- Spring Semester 2023
+-- Student: Keith Maly
+
+/* Assignment: Building on the tables, constraints, and data developed through
+Module 6.1, and using the updated EERD previously developed, complete each of 
+the following problems listed below.*/
+
+select sysdate, 'KMALY2' from dual;
+
+/* Note: Scripts for deploying the schema and loading data must be run before 
+executing the queries below. */
+
+-- 1. Write an SQL query to join 2+ tables where each query contains multiple 
+-- nested single-row functions. Make sure to use different functions in each 
+-- query. Explain what each query is intended to do.
+
+-- Explanation: To understand the Risk Insights revenue projection, the Risk 
+-- Insights Advisory Board requires a report that details all of the entities 
+-- that risk insights has under contract; that client program manager and email 
+-- (in a single field); and the length of each contract.
+
+select sysdate, 'KMALY2' from dual;
+
+SELECT cust_dba_name, CONCAT(CONCAT(emp_name, '//'),emp_email) "PM",
+    contract_start_date "Start Date", 
+    ABS(MONTHS_BETWEEN(contract_start_date, contract_end_date)) "Contract Length"
+FROM customer JOIN ri_client USING (cust_id, cust_code)
+    JOIN riplan USING (cust_id)
+    JOIN employee ON employee.emp_id = riplan.projmgr_id;
+
+
+-- 2. Write an SQL query to join 2+ tables where each query contains multiple 
+-- nested single-row functions. Make sure to use different functions in each 
+-- query. Explain what each query is intended to do.
+
+-- Explanation: The Risk Insights Advisory Board would like to know the status 
+-- of all entities that Risk Insights has engaged since incorporating and the 
+-- key dates associated with each.
+
+select sysdate, 'KMALY2' from dual;
+
+SELECT cust_dba_name,
+    DECODE(c.cust_code,   1, 'CONTACT',
+                        2, 'LEAD',
+                        3, 'CLIENT',
+                        'CLOSED') "Status",
+    date_created, contract_start_date, closed_date
+FROM customer c
+LEFT JOIN ri_client ric ON c.cust_code = ric.cust_code AND c.cust_id = ric.cust_id
+LEFT JOIN closed cl ON c.cust_code = cl.cust_code AND c.cust_id = cl.cust_id
+ORDER BY c.cust_code;
+
+-- 3. Write an SQL query to join 2+ tables where each query contains multiple 
+-- nested single-row functions. Make sure to use different functions in each 
+-- query. Explain what each query is intended to do.
+
+-- Explanation: Prepare a report that serves as the document library, which 
+-- contains the clients that the documents were written doc and the titles of 
+-- the documents. The titles of documents must be completely in Upper Case and 
+-- Companies must be formatted in Title Case.
+
+select sysdate, 'KMALY2' from dual;
+
+SELECT INITCAP(cust_dba_name), UPPER(doc_name)
+FROM customer JOIN riplan USING (cust_id)
+    JOIN task USING (plan_id)
+    JOIN cli_doc USING (task_id);
+
+-- 4. Write an SQL query to join 2+ tables where each query contains multiple 
+-- nested single-row functions. Make sure to use different functions in each 
+-- query. Explain what each query is intended to do.
+
+-- Explanation: Compute the average hours worked for each client. Results should 
+-- be rounded to 6 minute increments.
+
+select sysdate, 'KMALY2' from dual;
+
+SELECT cust_dba_name, round(AVG(hours_worked),1) "Avg Hours"
+FROM customer c
+    JOIN riplan p ON c.cust_id = p.cust_id
+    LEFT JOIN task t ON p.plan_id = t.plan_id
+    LEFT JOIN work_log l ON t.task_id = l.task_id
+GROUP BY cust_dba_name;
+
+-- 5. Write a query which is based on a single table and includes the GROUP BY 
+-- statement. Explain what the query is supposed to do.
+
+-- Explanation: Generate a work log summary of the number of hours worked across 
+-- all task by employee id.
+
+select sysdate, 'KMALY2' from dual;
+
+SELECT emp_id, sum(hours_worked)
+FROM work_log
+GROUP BY emp_id;
+
+-- 6. Repeat problem 5 but add the WHERE statement. Explain what the query is 
+-- supposed to do.
+
+-- Explanation: Generate a work log summary of the number of hours Betty Rubble 
+-- completed across all tasks.
+
+select sysdate, 'KMALY2' from dual;
+
+SELECT emp_id, sum(hours_worked)
+FROM work_log
+WHERE emp_id = 'BETT'
+GROUP BY emp_id;
+
+-- 7. Repeat problem 6 but add the HAVING statement. Explain what the query is 
+-- supposed to do.
+
+-- Explanation: Identify those employees by emp_id who have worked fewer than 
+-- six hours worked across all tasks.
+
+select sysdate, 'KMALY2' from dual;
+
+SELECT emp_id, sum(hours_worked)
+FROM work_log
+GROUP BY emp_id
+HAVING sum(hours_worked) < 15;
+
+-- 8. Write a query which is based on three tables and includes the GROUP BY, 
+-- WHERE and HAVING statements. Explain what the query is supposed to do.
+
+-- Explanation:  Prepare a report breaking down the work accomplished by client, 
+-- which includes the company name, number of plans, number of tasks completed, 
+-- and documents prepared. Do not include clients that have no prepared documents.
+
+select sysdate, 'KMALY2' from dual;
+
+SELECT cust_dba_name, count(*) "TASKS", sum(hours_worked) "HOURS", count(doc_id) "DOCS"
+FROM customer c
+    JOIN riplan p ON c.cust_id = p.cust_id
+    LEFT JOIN task t ON p.plan_id = t.plan_id
+    LEFT JOIN work_log wl ON t.task_id = wl.task_id
+    LEFT JOIN cli_doc d ON t.task_id = d.task_id
+WHERE UPPER(task_status) = 'CMP'
+GROUP BY cust_dba_name
+HAVING count(doc_id) > 1;
+
+-- 9. Write an SQL query that uses the GROUP BY ROLLUP statement. Explain what 
+-- the query is supposed to do.
+
+-- Explanation: Create a table that provides client names, task types and hours worked.
+
+select sysdate, 'KMALY2' from dual;
+
+SELECT cust_dba_name, task_type, sum(hours_worked)
+FROM customer JOIN riplan USING (cust_id)
+    JOIN task USING (plan_id)
+    JOIN work_log USING (task_id)
+GROUP BY cust_dba_name, ROLLUP(task_type)
+ORDER BY cust_dba_name;
+
+
+-- 10. Write an SQL query that uses the GROUP BY CUBE statement. Explain what 
+-- the query is supposed to do.
+
+-- Explanation: Provide a complete summation of hours worked by risk insights 
+-- employees by client and task type. Include sub and grand totals
+
+select sysdate, 'KMALY2' from dual;
+
+SELECT cust_dba_name, task_type, sum(hours_worked)
+FROM customer JOIN riplan USING (cust_id)
+    JOIN task USING (plan_id)
+    JOIN work_log USING (task_id)
+GROUP BY CUBE (cust_dba_name, task_type)
+ORDER BY cust_dba_name;

@@ -1,0 +1,313 @@
+-- Module 5.1 Database Project Table Creation and Management 
+-- AIT-524, DL1 
+-- Spring Semester 2023
+-- Student: Keith Maly
+
+/* Assignment: Using the modified EERD provided developed in earlier modules, 
+create all tables together with appropriate data types, relationships, 
+and constraints (PK, FK, NOT NULL, CHECK, DEFAULT, etc.) using appropriate 
+Oracle naming conventions taught in AIT-524. For each created table, display 
+its structure.*/
+
+/* Strategy: Using the EERD created separately, the tables shall be created in 
+the order listed below. This order was selected to avoid errors while creating
+foreign key constraints. The objective is to create all constraints at the time 
+of table creation, so that constraints are captured in code with the table.   
+1. customer
+2. employee
+3. plan
+4. task
+5. document
+6. work log
+7. contact
+8. lead
+9. client 
+*/
+
+/* 1. Create the customer table. */
+-- Programmer has not yet figured out how to integrate EXISTS into a drop table
+-- command in Oracle 12c.  DROP TABLE is uncommented for use.
+-- DROP TABLE customer CASCADE CONSTRAINTS; 
+    
+CREATE TABLE customer (
+    -- attributes 
+    cust_id NUMBER(5), 
+    date_created DATE NOT NULL,
+    cust_dba_name VARCHAR2(20) NOT NULL,
+    cust_poc_email VARCHAR2(35) NOT NULL,
+    cust_poc_phone VARCHAR2(10) NOT NULL,
+    cust_code CHAR(2) NOT NULL,
+    -- constraints
+    CONSTRAINT customer_cust_id_pk PRIMARY KEY (cust_id));
+
+-- CHECK: Checks that the table and constraints are what are expected
+DESC customer;
+
+SELECT dcc.column_name, 
+        dcc.constraint_name, 
+        dc.constraint_type, 
+        dc.search_condition
+    FROM user_constraints dc, user_cons_columns dcc
+    WHERE 1=1
+        AND dc.table_name = dcc.table_name
+        AND dc.owner = dcc.owner
+        AND dc.constraint_name = dcc.constraint_name
+        AND rownum < 21
+        AND dcc.table_name = 'CUSTOMER';
+        
+/* 2. Create the EMPLOYEE table */
+-- DROP TABLE employee CASCADE CONSTRAINTS;
+
+CREATE TABLE employee (
+    -- attributes 
+    emp_id CHAR(4),
+    emp_name VARCHAR2(20) NOT NULL,
+    emp_email VARCHAR(35) NOT NULL,
+    emp_status CHAR(2) NOT NULL,
+    emp_details VARCHAR2(1000),
+    -- constraints
+    CONSTRAINT employee_emp_id_pk PRIMARY KEY (emp_id)
+);
+
+-- CHECK: Checks that the table and constraints are what are expected
+DESC employee;
+
+SELECT dcc.column_name, 
+        dcc.constraint_name, 
+        dc.constraint_type, 
+        dc.search_condition
+    FROM user_constraints dc, user_cons_columns dcc
+    WHERE 1=1
+        AND dc.table_name = dcc.table_name
+        AND dc.owner = dcc.owner
+        AND dc.constraint_name = dcc.constraint_name
+        AND rownum < 21
+        AND dcc.table_name = 'EMPLOYEE';
+        
+/* 3. CREATE the PLAN table */
+--DROP TABLE riplan CASCADE CONSTRAINTS;
+
+CREATE TABLE riplan (
+    --attributes 
+    plan_id NUMBER(5),
+    cust_id NUMBER(5) NOT NULL,
+    projmgr_id CHAR(4) NOT NULL,
+    plan_create_date DATE NOT NULL,
+    plan_close_date DATE NOT NULL,
+    plan_status CHAR(3) NOT NULL,
+    other_plan_details varchar2(1000), 
+    -- constraints
+    CONSTRAINT riplan_plan_id_pk PRIMARY KEY (plan_id),
+    CONSTRAINT riplan_cust_id_fk FOREIGN KEY (cust_id)
+        REFERENCES customer(cust_id),
+    CONSTRAINT riplan_projmgr_id_fk FOREIGN KEY (projmgr_id)
+        REFERENCES employee(emp_id),
+    CONSTRAINT riplan_plan_close_date_ck CHECK 
+        (plan_close_date >= plan_create_date)
+);
+DESC riplan;
+SELECT dcc.column_name, 
+        dcc.constraint_name, 
+        dc.constraint_type, 
+        dc.search_condition
+    FROM user_constraints dc, user_cons_columns dcc
+    WHERE 1=1
+        AND dc.table_name = dcc.table_name
+        AND dc.owner = dcc.owner
+        AND dc.constraint_name = dcc.constraint_name
+        AND rownum < 21
+        AND dcc.table_name = 'RIPLAN';
+
+/* 4. CREATE the TASK table. */
+--DROP TABLE task CASCADE CONSTRAINTS;
+
+CREATE TABLE task (
+    --attributes 
+    task_id VARCHAR2(50),
+    plan_id NUMBER(5) NOT NULL,
+    task_type CHAR(5) NOT NULL,
+    task_start_date DATE NOT NULL, 
+    task_due_date DATE NOT NULL,
+    task_compl_date DATE NOT NULL,
+    task_status CHAR(3) NOT NULL,
+    task_desc VARCHAR2(1000) NOT NULL,
+    total_hours NUMBER(6,1) DEFAULT 0.0 NOT NULL,
+    -- constraints
+    CONSTRAINT task_task_id_pk PRIMARY KEY (task_id),
+    CONSTRAINT task_plan_id_fk FOREIGN KEY (plan_id)
+        REFERENCES riplan(plan_id),
+    CONSTRAINT task_due_date_ck CHECK
+        (task_due_date >= task_start_date),
+    CONSTRAINT task_compl_date_ck CHECK
+        (task_compl_date >= task_start_date)
+);
+        
+DESC task;
+
+SELECT dcc.column_name, 
+        dcc.constraint_name, 
+        dc.constraint_type, 
+        dc.search_condition
+    FROM user_constraints dc, user_cons_columns dcc
+    WHERE 1=1
+        AND dc.table_name = dcc.table_name
+        AND dc.owner = dcc.owner
+        AND dc.constraint_name = dcc.constraint_name
+        AND rownum < 21
+        AND dcc.table_name = 'TASK';
+        
+/* 5. Create the Client Document (cli_doc) table */
+-- DROP TABLE cli_doc CASCADE CONSTRAINTS;
+
+CREATE TABLE cli_doc(
+    --attributes 
+    doc_id VARCHAR2(50),
+    task_id VARCHAR2(50) NOT NULL,
+    doc_create_date DATE NOT NULL,
+    doc_compl_date DATE,
+    doc_name VARCHAR2(50) NOT NULL,
+    doc_type VARCHAR2(4) NOT NULL,
+    doc_status CHAR(3) NOT NULL,
+    doc_desc VARCHAR2(1000) NOT NULL,
+    doc_file_link VARCHAR2(100) NOT NULL,
+    -- constraints 
+    CONSTRAINT cli_doc_doc_id_pk PRIMARY KEY (doc_id),
+    CONSTRAINT cli_doc_task_id_fk FOREIGN KEY (task_id)
+        REFERENCES task(task_id));
+
+DESC cli_doc;
+
+SELECT dcc.column_name, 
+        dcc.constraint_name, 
+        dc.constraint_type, 
+        dc.search_condition
+    FROM user_constraints dc, user_cons_columns dcc
+    WHERE 1=1
+        AND dc.table_name = dcc.table_name
+        AND dc.owner = dcc.owner
+        AND dc.constraint_name = dcc.constraint_name
+        AND rownum < 21
+        AND dcc.table_name = 'CLI_DOC';
+        
+/* 6. Create the WORK_LOG Table */
+--DROP TABLE work_log CASCADE CONSTRAINTS;
+
+CREATE TABLE work_log (
+    --attributes
+    log_id NUMBER(9),
+    emp_id CHAR(4) NOT NULL,
+    task_id VARCHAR2(50) NOT NULL,
+    log_date DATE NOT NULL,
+    hours_worked NUMBER (3,1) DEFAULT 0.0 NOT NULL,
+    work_details VARCHAR2(1000),
+    -- constraints
+    CONSTRAINT work_log_log_id_pk PRIMARY KEY (log_id),
+    CONSTRAINT work_log_emp_id_fk FOREIGN KEY (emp_id)
+        REFERENCES employee(emp_id),
+    CONSTRAINT work_log_task_id_fk FOREIGN KEY (task_id)
+        REFERENCES task(task_id)
+);
+
+DESC work_log;
+
+SELECT dcc.column_name, 
+        dcc.constraint_name, 
+        dc.constraint_type, 
+        dc.search_condition
+    FROM user_constraints dc, user_cons_columns dcc
+    WHERE 1=1
+        AND dc.table_name = dcc.table_name
+        AND dc.owner = dcc.owner
+        AND dc.constraint_name = dcc.constraint_name
+        AND rownum < 21
+        AND dcc.table_name = 'WORK_LOG';
+
+/* 7. Create Contact Table */
+--DROP TABLE contact CASCADE CONSTRAINTS;
+
+CREATE TABLE contact (
+    -- attributes
+    cust_id number(5),
+    cust_code char(2) NOT NULL,
+    -- constraints
+    CONSTRAINT contact_cust_id_pk PRIMARY KEY (cust_id),
+    CONSTRAINT contact_cust_id_fk FOREIGN KEY (cust_id)
+        REFERENCES customer(cust_id)
+);
+
+DESC contact;
+
+SELECT dcc.column_name, 
+        dcc.constraint_name, 
+        dc.constraint_type, 
+        dc.search_condition
+    FROM user_constraints dc, user_cons_columns dcc
+    WHERE 1=1
+        AND dc.table_name = dcc.table_name
+        AND dc.owner = dcc.owner
+        AND dc.constraint_name = dcc.constraint_name
+        AND rownum < 21
+        AND dcc.table_name = 'CONTACT';
+        
+/* 8. Create LEAD Table */
+--DROP TABLE ri_lead CASCADE CONSTRAINTS;
+
+CREATE TABLE ri_lead (
+    --attributes
+    cust_id NUMBER(5),
+    cust_code CHAR(2) NOT NULL,
+    engage_log VARCHAR2(2000),
+    --constraints
+    CONSTRAINT con_lead_cust_id_pk PRIMARY KEY (cust_id),
+    CONSTRAINT con_lead_cust_id_fk FOREIGN KEY (cust_id)
+        REFERENCES customer(cust_id)
+);
+
+DESC ri_lead;
+
+SELECT dcc.column_name, 
+        dcc.constraint_name, 
+        dc.constraint_type, 
+        dc.search_condition
+    FROM user_constraints dc, user_cons_columns dcc
+    WHERE 1=1
+        AND dc.table_name = dcc.table_name
+        AND dc.owner = dcc.owner
+        AND dc.constraint_name = dcc.constraint_name
+        AND rownum < 21
+        AND dcc.table_name = 'RI_LEAD';
+        
+/* 9. Create RI_CLIENT table*/
+
+--DROP TABLE ri_client CASCADE CONSTRAINTS;
+
+CREATE TABLE ri_client(
+    --attributes
+    cust_id NUMBER(5),
+    cust_code CHAR(2) NOT NULL,
+    contract_start_date DATE NOT NULL,
+    contract_end_date DATE NOT NULL,
+    ein VARCHAR2(10) NOT NULL,
+    client_billing_details VARCHAR2(500),
+    -- constraints
+    CONSTRAINT ri_client_cust_id_pk PRIMARY KEY (cust_id),
+    CONSTRAINT ri_client_cust_id_fk FOREIGN KEY (cust_id)
+        REFERENCES customer(cust_id),
+    CONSTRAINT ri_client_ein_uk UNIQUE (ein),
+    CONSTRAINT ri_client_contract_end_date_ck CHECK
+        (contract_end_date >= contract_start_date)
+);
+
+DESC ri_client;
+
+SELECT dcc.column_name, 
+        dcc.constraint_name, 
+        dc.constraint_type, 
+        dc.search_condition
+    FROM user_constraints dc, user_cons_columns dcc
+    WHERE 1=1
+        AND dc.table_name = dcc.table_name
+        AND dc.owner = dcc.owner
+        AND dc.constraint_name = dcc.constraint_name
+        AND rownum < 21
+        AND dcc.table_name = 'RI_CLIENT';

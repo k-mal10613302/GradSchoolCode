@@ -1,0 +1,157 @@
+-- Module 6.1 Joining Tables
+-- AIT-524, DL1 
+-- Spring Semester 2023
+-- Student: Keith Maly
+
+/* Assignment: Building on the tables and constraints developed in Module 5.2, 
+and using the updated EERD previously developed, complete each of the following 
+problems listed below.*/
+
+select sysdate, 'KMALY2' from dual;
+
+/* Note: Scripts for deploying the schema and loading data must be run before 
+executing the queries below. */
+
+-- 1. Write a SQL code to join two tables using the WHERE statement. Explain 
+-- what the query is intended to do.
+-- Explanation: Retrieve all data on open plans as well as the name of their 
+-- assigned project manager.
+
+SELECT p.plan_id, p.cust_id, e.emp_name proj_mgr, p.plan_create_date, 
+    p.plan_close_date, p.plan_status, p.other_plan_details
+FROM riplan p, employee e
+WHERE 1 = 1
+    AND p.projmgr_id = e.emp_id
+    AND p.plan_close_date IS NULL;
+
+-- 2. Repeat problem 1 using the JOIN … USING keywords.
+-- Explanation: Retrieve all the data on open plans as well as the client 
+-- company name. Performing this query, because the common attribute in problem 
+-- 1 doesn’t have the same name in both riplan and employee table.
+
+SELECT p.plan_id, c.cust_dba_name client, p.plan_create_date, 
+    p.plan_close_date, p.plan_status, p.other_plan_details
+FROM riplan p
+JOIN customer c
+USING (cust_id)
+WHERE 1 = 1
+    AND p.plan_close_date IS NULL;
+    
+-- 3. Repeat problem 1 using the JOIN … ON keywords.
+-- Explanation: Retrieve all data on open plans as well as the name of their 
+-- assigned project manager.
+
+SELECT p.plan_id, p.cust_id, e.emp_name proj_mgr, p.plan_create_date, 
+    p.plan_close_date, p.plan_status, p.other_plan_details
+FROM riplan p 
+JOIN employee e
+  ON p.projmgr_id = e.emp_id
+WHERE 1 = 1
+    AND p.plan_close_date IS NULL;
+
+-- 4. Repeat problem 1 but add at least two conditions in the WHERE statement 
+-- and use an arithmetic and a special operator. Use logical operators to 
+-- combine multiple conditions. Explain what the query is intended to do.
+-- Explanation: For all started tasks, prepare a task report that includes the 
+-- plan number, each task, the task type and description, the day work was 
+-- performed on  the task, and what, exactly was done. Note: task status may be 
+-- not started (NST), in progress (INP) or complete (CMP)
+
+SELECT t.plan_id, t.task_id, t.task_type, t.task_desc, wl.log_date, wl.work_details
+FROM task t, work_log wl
+WHERE 1=1
+    AND t.task_id = wl.task_id
+    AND t.task_status IN ('INP', 'CMP');
+
+-- 5. Repeat problem 2 but add two more conditions in the WHERE statement and 
+-- use an arithmetic and a special operator that are different from the ones 
+-- you used in the previous query. Use logical operators to combine multiple 
+-- conditions. Explain what the query is intended to do.
+-- Explanation: For customers whose contracts opened on April 2, 2023, prepare 
+-- a report containing customer business name, point of contact, the contract 
+-- open and close dates, and their project manager.
+
+SELECT c.cust_dba_name, c.cust_poc_name, cl.contract_start_date, cl.contract_end_date, e.emp_name
+FROM customer c
+JOIN ri_client cl 
+  ON c.cust_id = cl.cust_id AND c.cust_code = cl.cust_code
+JOIN riplan 
+  ON c.cust_id = riplan.cust_id
+JOIN employee e 
+  ON e.emp_id = riplan.projmgr_id
+WHERE 1=1 
+    AND cl.contract_start_date = '02-APR-2023'
+    AND c.cust_code = 3;
+
+-- 6. Repeat problem 1 joining three tables
+-- Explanation: Show a list of client documents prepared, the URL where they 
+-- are stored, the employee that created the document, the time it took to 
+-- create the document, and the employee who created it.
+
+SELECT doc.doc_name, doc.doc_file_link, doc.doc_compl_date, wl.hours_worked, e.emp_name
+FROM cli_doc doc, task t, work_log wl, employee e
+WHERE 1=1
+    AND doc.task_id = t.task_id
+    AND t.task_id = wl.task_id
+    AND wl.emp_id = e.emp_id
+    AND doc.doc_compl_date IS NOT NULL;
+    
+-- 7. Repeat problem 2 joining three tables.
+-- Explanation: Show a list of all client documents, the URL where they are 
+-- stored, the start and (if available) completion dates and the time it took 
+-- to create the document
+
+SELECT doc.doc_name, doc.doc_file_link, doc.doc_create_date, doc.doc_compl_date, wl.hours_worked
+FROM cli_doc doc
+JOIN task USING (task_id)
+JOIN work_log wl USING (task_id);
+
+-- 8. Repeat problem 3 joining three tables
+-- Explanation: For work performed during the week of April 3, 2023; create a 
+-- work report that outlines the employee who completed the work, the date that 
+-- the work was done, what specifically was done, and the customer that the work 
+-- supported.
+
+SELECT e.emp_name, wl.log_date, wl.work_details, c.cust_dba_name
+FROM work_log wl
+JOIN employee e ON wl.emp_id = e.emp_id
+JOIN task t ON wl.task_id = t.task_id
+JOIN riplan p ON t.plan_id = p.plan_id
+JOIN customer c ON p.cust_id = c.cust_id
+WHERE wl.log_date BETWEEN '3-APR-2023' AND '7-APR-2023';
+
+-- 9. Repeat problem 4 joining three tables
+-- Explanation: For the Bedrock Newspaper Company, retrieve the plan notes, 
+-- tasks descriptions and status as well as their start, due, and completion dates.
+
+SELECT c.cust_dba_name, p.other_plan_details, t.task_desc, t.task_type, t.task_status, 
+    t.task_start_date, t.task_due_date, t.task_compl_date
+FROM customer c
+JOIN riplan p
+  ON c.cust_id = p.cust_id
+JOIN task t
+  ON p.plan_id = t.plan_id
+WHERE 1=1 
+    AND c.cust_code = 3
+    AND c.cust_dba_name LIKE '%News%';
+
+-- 10. Write a SQL query that joins four tables using any type of join and uses 
+-- both an arithmetic and special operator. Explain what the query is intended 
+-- to do.
+
+-- Explanation: Prepare a report detailing the current status of each customer 
+-- that includes, the customer business name, customer poc, their customer code 
+-- (aka) status, the date they became a contact, a contract_start date (for 
+-- clients), a closed date (if applicable), and any notes on leads.
+
+SELECT c.cust_dba_name, c.cust_poc_name, c.cust_code, c.date_created, 
+    client.contract_start_date, closed.closed_date, l.engage_log
+FROM customer c
+LEFT JOIN ri_client client
+       ON c.cust_id = client.cust_id AND c.cust_code = client.cust_code
+LEFT JOIN closed
+       ON c.cust_id = closed.cust_id AND c.cust_code = closed.cust_code
+LEFT JOIN ri_lead l
+       ON c.cust_id = l.cust_id AND c.cust_code = l.cust_code
+WHERE c.date_created BETWEEN '01-APR-2023' AND '07-APR-2023'
+ORDER BY c.cust_code;
