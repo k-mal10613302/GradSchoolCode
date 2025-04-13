@@ -1,2 +1,2 @@
 # GradSchoolCode
-Provided to Offer Examples of Code Completed during graduate school 2022-2025
+Provided to offer examples of code completed during graduate school, 2022-2025
